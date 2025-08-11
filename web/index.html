@@ -16,6 +16,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="/web/js/graphql-client.js?v=5"></script>
+    <script src="/web/js/duration-utils.js?v=14"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="/web/css/font-awesome.min.css" rel="stylesheet">
     
@@ -3211,7 +3212,7 @@
                                 <div>
                                     <span style={{ color: 'var(--text-secondary)' }}>Duration:</span>{' '}
                                     <span style={{ fontWeight: '500' }}>
-                                        {(tooltip.content.totalDuration / 1000).toFixed(1)}s
+                                        {typeof formatDuration === 'function' ? formatDuration(tooltip.content.totalDuration) : `${(tooltip.content.totalDuration / 1000).toFixed(1)}s`}
                                     </span>
                                 </div>
                             </div>
@@ -3348,6 +3349,7 @@
                         name: testNames[i % testNames.length] + ` ${i + 1}`,
                         status: status,
                         duration: Math.random() * 3000 + 100, // 100ms-3s
+                        duration_ms: Math.random() * 3000 + 100, // 100ms-3s for display
                         message: status === 'failed' ? 'Test assertion failed' : '',
                         type: 'test'
                     });
@@ -3562,12 +3564,12 @@
                         if (currentView.type === 'projects') {
                             // Project-level tooltip
                             const passRate = d.data.total > 0 ? ((d.data.passed / d.data.total) * 100).toFixed(1) : 0;
-                            const duration = (d.data.duration / 1000).toFixed(2);
+                            const duration = typeof formatDuration === 'function' ? formatDuration(d.data.duration) : `${(d.data.duration / 1000).toFixed(2)}s`;
                             
                             tooltipContent = `
                                 <div style="font-weight: 700; margin-bottom: 0.75rem; font-size: 1rem;">${d.data.name}</div>
                                 <div style="margin-bottom: 0.5rem; color: var(--text-secondary);">Project Overview</div>
-                                <div style="margin-bottom: 0.5rem;">Tests: ${d.data.total} • Duration: ${duration}s</div>
+                                <div style="margin-bottom: 0.5rem;">Tests: ${d.data.total} • Duration: ${duration}</div>
                                 <div style="margin-bottom: 0.5rem;">✅ ${d.data.passed} • ❌ ${d.data.failed} • ⏭️ ${d.data.skipped}</div>
                                 <div style="margin-top: 0.75rem; font-weight: 600; color: ${getTestStatusColor(d.data.passed, d.data.failed, d.data.skipped, d.data.total)};">Pass Rate: ${passRate}%</div>
                                 <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-tertiary);">Click to view test suites</div>
@@ -3575,19 +3577,19 @@
                         } else if (currentView.type === 'project') {
                             // Suite-level tooltip
                             const passRate = d.data.total > 0 ? ((d.data.passed / d.data.total) * 100).toFixed(1) : 0;
-                            const duration = (d.data.duration / 1000).toFixed(2);
+                            const duration = typeof formatDuration === 'function' ? formatDuration(d.data.duration) : `${(d.data.duration / 1000).toFixed(2)}s`;
                             
                             tooltipContent = `
                                 <div style="font-weight: 700; margin-bottom: 0.75rem; font-size: 1rem;">${d.data.name}</div>
                                 <div style="margin-bottom: 0.5rem; color: var(--text-secondary);">Test Suite</div>
-                                <div style="margin-bottom: 0.5rem;">Tests: ${d.data.total} • Duration: ${duration}s</div>
+                                <div style="margin-bottom: 0.5rem;">Tests: ${d.data.total} • Duration: ${duration}</div>
                                 <div style="margin-bottom: 0.5rem;">✅ ${d.data.passed} • ❌ ${d.data.failed} • ⏭️ ${d.data.skipped}</div>
                                 <div style="margin-top: 0.75rem; font-weight: 600; color: ${getTestStatusColor(d.data.passed, d.data.failed, d.data.skipped, d.data.total)};">Pass Rate: ${passRate}%</div>
                                 <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-tertiary);">Click to view individual tests</div>
                             `;
                         } else if (currentView.type === 'suite') {
                             // Individual test tooltip
-                            const duration = (d.data.duration / 1000).toFixed(3);
+                            const duration = typeof formatDuration === 'function' ? formatDuration(d.data.duration) : `${(d.data.duration / 1000).toFixed(3)}s`;
                             const statusIcon = d.data.status === 'passed' ? '✅' : d.data.status === 'failed' ? '❌' : '⏭️';
                             const statusColor = getStatusColor(d.data.status);
                             
@@ -3597,7 +3599,7 @@
                                     <span style="font-size: 1.2rem;">${statusIcon}</span>
                                     <span style="font-weight: 600; color: ${statusColor}; text-transform: uppercase;">${d.data.status}</span>
                                 </div>
-                                <div style="margin-bottom: 0.5rem;">Duration: ${duration}s</div>
+                                <div style="margin-bottom: 0.5rem;">Duration: ${duration}</div>
                                 ${d.data.message ? `<div style="margin-top: 0.75rem; font-size: 0.875rem; color: var(--error); font-style: italic;">${d.data.message}</div>` : ''}
                             `;
                         }
@@ -3627,7 +3629,7 @@
                     .attr("class", "treemap-text-count")
                     .attr("x", 12)
                     .attr("y", d => (d.y1 - d.y0) - 12)
-                    .text(d => `${d.data.total} tests • ${(d.data.duration / 1000).toFixed(1)}s`);
+                    .text(d => `${d.data.total} tests • ${typeof formatDuration === 'function' ? formatDuration(d.data.duration) : `${(d.data.duration / 1000).toFixed(1)}s`}`);
 
             }, [projects, testRuns, currentView]);
 
@@ -4218,12 +4220,12 @@
                                 <div style={{ fontSize: '0.75rem' }}>
                                     <div>Pass Rate: {((tooltip.content.passRate || 0) * 100).toFixed(1)}%</div>
                                     <div>Total Specs: {tooltip.content.totalSpecs || 0}</div>
-                                    <div>Duration: {((tooltip.content.value || 0) / 1000).toFixed(1)}s</div>
+                                    <div>Duration: {typeof formatDuration === 'function' ? formatDuration(tooltip.content.value || 0) : `${((tooltip.content.value || 0) / 1000).toFixed(1)}s`}</div>
                                 </div>
                             ) : (
                                 <div style={{ fontSize: '0.75rem' }}>
                                     <div>Pass Rate: {((tooltip.content.passRate || 0) * 100).toFixed(1)}%</div>
-                                    <div>Avg Duration: {tooltip.content.avgDuration ? tooltip.content.avgDuration.toFixed(0) : 0}ms</div>
+                                    <div>Avg Duration: {typeof formatDuration === 'function' ? formatDuration(tooltip.content.avgDuration || 0) : `${((tooltip.content.avgDuration || 0) / 1000).toFixed(1)}s`}</div>
                                     <div>Runs: {tooltip.content.runs}</div>
                                 </div>
                             )}
@@ -4633,6 +4635,18 @@
                     console.log('Projects loaded:', projectList);
                     console.log('Test runs:', data.recentTestRuns);
                     
+                    // Debug duration values
+                    if (data.recentTestRuns && data.recentTestRuns.length > 0) {
+                        data.recentTestRuns.forEach((run, index) => {
+                            console.log(`Test run ${index}:`, {
+                                runId: run.runId,
+                                duration: run.duration,
+                                durationType: typeof run.duration,
+                                hasOwnProperty: run.hasOwnProperty('duration')
+                            });
+                        });
+                    }
+                    
                     // Enrich test runs with project names
                     const enrichedTestRuns = (data.recentTestRuns || []).map(run => {
                         const project = projectList.find(p => p.projectId === run.projectId);
@@ -4729,18 +4743,32 @@
                         
                         // Use the actual suiteRuns relationship from GraphQL
                         if (detailedRun.suiteRuns && detailedRun.suiteRuns.length > 0) {
-                            suites = detailedRun.suiteRuns.map(suiteRun => ({
-                                id: suiteRun.id,
-                                name: suiteRun.suiteName,
-                                totalTests: suiteRun.totalSpecs,
-                                passedTests: suiteRun.passedSpecs,
-                                failedTests: suiteRun.failedSpecs,
-                                skippedTests: suiteRun.skippedSpecs,
-                                duration_ms: suiteRun.duration,
-                                status: suiteRun.status,
-                                test_run_id: run.id,
-                                specRuns: suiteRun.specRuns || []
-                            }));
+                            suites = detailedRun.suiteRuns.map(suiteRun => {
+                                console.log('GraphQL suiteRun data:', {
+                                    suiteName: suiteRun.suiteName,
+                                    duration: suiteRun.duration,
+                                    durationType: typeof suiteRun.duration
+                                });
+                                
+                                // Use provided duration, ensuring it's never null/undefined
+                                let duration = suiteRun.duration || 0;
+                                
+                                // Log final duration being used
+                                console.log(`Final suite duration for ${suiteRun.suiteName}: ${duration}ms`);
+                                
+                                return {
+                                    id: suiteRun.id,
+                                    name: suiteRun.suiteName,
+                                    totalTests: suiteRun.totalSpecs,
+                                    passedTests: suiteRun.passedSpecs,
+                                    failedTests: suiteRun.failedSpecs,
+                                    skippedTests: suiteRun.skippedSpecs,
+                                    duration_ms: duration,
+                                    status: suiteRun.status,
+                                    test_run_id: run.id,
+                                    specRuns: suiteRun.specRuns || []
+                                };
+                            });
                         } else if (detailedRun.metadata && detailedRun.metadata.suite_runs) {
                             // Fallback to metadata if no database relationships exist
                             console.log('Falling back to metadata suiteRuns');
@@ -4796,12 +4824,22 @@
                 if (suite.specRuns && suite.specRuns.length > 0) {
                     // Map database SpecRun entities to our spec format
                     specs = suite.specRuns.map((specRun, index) => {
-                        console.log('Spec run data:', specRun);
+                        
+                        // Calculate duration more accurately
+                        let duration = specRun.duration || 0;
+                        
+                        // If duration is 0 but we have timestamps, calculate from them
+                        if (duration === 0 && specRun.startTime && specRun.endTime) {
+                            const start = new Date(specRun.startTime);
+                            const end = new Date(specRun.endTime);
+                            duration = end.getTime() - start.getTime();
+                        }
+                        
                         return {
                             id: specRun.id || index + 1,
                             name: specRun.specName || '[Unnamed Spec]',
                             status: specRun.status,
-                            duration_ms: specRun.duration,
+                            duration_ms: duration, // Use calculated duration
                             error_message: specRun.errorMessage || null,
                             suite_id: suite.id,
                             started_at: specRun.startTime,
@@ -4949,9 +4987,20 @@
                                                         {run.status}
                                                     </span>
                                                 </td>
-                                                <td style={{fontWeight: '500'}}>
-                                                    {run.duration ? `${(run.duration / 1000).toFixed(1)}s` : 'N/A'}
-                                                </td>
+                                                    <td style={{fontWeight: '500'}}>
+                                                        {(() => {
+                                                            let duration = run.duration;
+                                                            if ((!duration || duration === 0) && run.startTime && run.endTime) {
+                                                                duration = new Date(run.endTime).getTime() - new Date(run.startTime).getTime();
+                                                            }
+                                                            // If still no duration, try to aggregate from suites
+                                                            if ((!duration || duration === 0) && run.suites && run.suites.length > 0) {
+                                                                duration = run.suites.reduce((total, suite) => total + (Number(suite.duration_ms) || 0), 0);
+                                                            }
+                                                            const finalDuration = Number(duration) || 0;
+                                                            return typeof formatDuration === 'function' ? formatDuration(finalDuration) : (finalDuration >= 1000 ? `${(finalDuration / 1000).toFixed(1)}s` : `${Math.round(finalDuration)}ms`);
+                                                        })()}
+                                                    </td>
                                                 <td style={{fontWeight: '500', color: 'var(--text-secondary)'}}>{formatDate(run.startTime)}</td>
                                             </tr>
                                         ))}
@@ -5023,7 +5072,10 @@
                                                 </span>
                                             </td>
                                             <td style={{fontWeight: '500'}}>
-                                                {(suite.duration_ms / 1000).toFixed(1)}s
+                                                {(() => {
+                                                    const duration = Number(suite.duration_ms) || 0;
+                                                    return typeof formatDuration === 'function' ? formatDuration(duration) : (duration >= 1000 ? `${(duration / 1000).toFixed(1)}s` : `${Math.round(duration)}ms`);
+                                                })()}
                                             </td>
                                         </tr>
                                     ))}
@@ -5074,7 +5126,13 @@
                                                 </span>
                                             </td>
                                             <td style={{fontWeight: '500'}}>
-                                                {spec.duration_ms}ms
+                                                    {(() => {
+                                                        const duration = Number(spec.duration_ms) || 0;
+                                                        if (typeof formatDuration !== 'function') {
+                                                            return 'ERROR: formatDuration not loaded';
+                                                        }
+                                                        return formatDuration(duration);
+                                                    })()}
                                             </td>
                                             <td>
                                                 {spec.error_message ? (
@@ -5994,7 +6052,7 @@
                                                         </div>
                                                         <div title="Avg Duration">
                                                             <span style={{color: 'var(--text-tertiary)'}}>⏱️</span>
-                                                            <span style={{marginLeft: '0.25rem', fontWeight: '600'}}>{(project.stats.averageDuration / 1000).toFixed(1)}s</span>
+                                                            <span style={{marginLeft: '0.25rem', fontWeight: '600'}}>{typeof formatDuration === 'function' ? formatDuration(project.stats.averageDuration) : `${(project.stats.averageDuration / 1000).toFixed(1)}s`}</span>
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -8540,6 +8598,6 @@
         // Use React 18's createRoot API
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<FernPlatform />);
-    </script>
+    </script> 
 </body>
 </html>
