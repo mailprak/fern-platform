@@ -15,7 +15,7 @@ gateway: {
 				let ingressMetaName = context.name + nameSuffix
 				let ig  = [for i in context.outputs if (i.kind == "Ingress") && (i.metadata.name == ingressMetaName) {i}][0]
 				igs: *null | _
-				if ig != _|_ if ig.status != _|_ if ig.status.loadbalancer != _|_ if len(ig.status.loadbalancer.ingress) > 0 {
+				if ig != _|_ if ig.status != _|_ if ig.status.loadbalancer != _|_ if ig.status.loadbalancer.ingress != _|_ if len(ig.status.loadbalancer.ingress) > 0 {
 				  igs: ig.status.loadbalancer.ingress[0]
 				}
 				igr: *null | _
