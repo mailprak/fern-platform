@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Duration Test</title>
+</head>
+<body>
+    <script src="/web/js/duration-utils.js?v=5"></script>
+    <script>
+        // Test the formatDuration function
+        setTimeout(() => {
+            console.log('Testing formatDuration function:');
+            console.log('500ms:', formatDuration(500));
+            console.log('1500ms:', formatDuration(1500));
+            console.log('65000ms:', formatDuration(65000));
+            
+            // Display results in the page
+            document.body.innerHTML = `
+                <h1>Duration Formatting Test</h1>
+                <p>500ms: ${formatDuration(500)}</p>
+                <p>1500ms: ${formatDuration(1500)}</p>
+                <p>65000ms: ${formatDuration(65000)}</p>
+                <p>Function available: ${typeof formatDuration === 'function'}</p>
+            `;
+        }, 100);
+    </script>
+</body>
+</html>

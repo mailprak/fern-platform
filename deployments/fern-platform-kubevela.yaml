@@ -595,8 +595,8 @@ spec:
         - keycloak
       properties:
         # Use ghcr.io/guidewire-oss/fern-platform:latest or docker.io/guidewireoss/fern-platform:latest
-        image: ghcr.io/guidewire-oss/fern-platform:0.1.0
-        imagePullPolicy: Always
+        image: fern-platform:latest
+        imagePullPolicy: Never
         namespace: fern-platform
         ports:
           - port: 8080
