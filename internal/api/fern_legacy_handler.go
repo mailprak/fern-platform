@@ -287,6 +287,11 @@ func (h *FernLegacyHandler) createFernTestReport(c *gin.Context) {
 			SkippedTests: skippedTests,
 		}
 
+		// Calculate duration if both start and end times are available
+		if endTime != nil && !startTime.IsZero() {
+			testRun.Duration = endTime.Sub(startTime)
+		}
+
 		// Store additional metadata
 		if input.BuildUrl != "" || input.BuildTriggerActor != "" {
 			testRun.Metadata = map[string]interface{}{
@@ -308,6 +313,112 @@ func (h *FernLegacyHandler) createFernTestReport(c *gin.Context) {
 			h.logger.WithError(err).Error("Failed to create test run")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+
+		// Create suite runs and spec runs from input data
+		for _, inputSuiteRun := range input.SuiteRuns {
+			// Parse suite start and end times
+			var suiteStartTime time.Time
+			var suiteEndTime *time.Time
+
+			if inputSuiteRun.StartTime != "" {
+				if parsedTime, err := time.Parse(time.RFC3339, inputSuiteRun.StartTime); err == nil {
+					suiteStartTime = parsedTime
+				} else {
+					suiteStartTime = startTime // Fallback to test run start time
+				}
+			} else {
+				suiteStartTime = startTime
+			}
+
+			if inputSuiteRun.EndTime != "" {
+				if parsedTime, err := time.Parse(time.RFC3339, inputSuiteRun.EndTime); err == nil {
+					suiteEndTime = &parsedTime
+				}
+			}
+
+			// Calculate suite statistics
+			var suiteTotalTests, suitePassedTests, suiteFailedTests, suiteSkippedTests int
+			for _, specRun := range inputSuiteRun.SpecRuns {
+				suiteTotalTests++
+				switch specRun.Status {
+				case "passed":
+					suitePassedTests++
+				case "failed":
+					suiteFailedTests++
+				case "skipped", "pending":
+					suiteSkippedTests++
+				}
+			}
+
+			// Create suite run
+			suiteRun := &domain.SuiteRun{
+				TestRunID:    testRun.ID,
+				Name:         inputSuiteRun.SuiteName,
+				Status:       "completed", // Assume completed since we're getting end time
+				StartTime:    suiteStartTime,
+				EndTime:      suiteEndTime,
+				TotalTests:   suiteTotalTests,
+				PassedTests:  suitePassedTests,
+				FailedTests:  suiteFailedTests,
+				SkippedTests: suiteSkippedTests,
+			}
+
+			// Calculate suite duration
+			if suiteEndTime != nil && !suiteStartTime.IsZero() {
+				suiteRun.Duration = suiteEndTime.Sub(suiteStartTime)
+			}
+
+			if err := h.testingService.CreateSuiteRun(c.Request.Context(), suiteRun); err != nil {
+				h.logger.WithError(err).Error("Failed to create suite run", "suite_name", suiteRun.Name)
+				continue // Continue with other suites
+			}
+
+			// Create spec runs for this suite
+			for _, inputSpecRun := range inputSuiteRun.SpecRuns {
+				// Parse spec start and end times
+				var specStartTime time.Time
+				var specEndTime *time.Time
+
+				if inputSpecRun.StartTime != "" {
+					if parsedTime, err := time.Parse(time.RFC3339, inputSpecRun.StartTime); err == nil {
+						specStartTime = parsedTime
+					} else {
+						specStartTime = suiteStartTime // Fallback to suite start time
+					}
+				} else {
+					specStartTime = suiteStartTime
+				}
+
+				if inputSpecRun.EndTime != "" {
+					if parsedTime, err := time.Parse(time.RFC3339, inputSpecRun.EndTime); err == nil {
+						specEndTime = &parsedTime
+					}
+				}
+
+				// Create spec run
+				specRun := &domain.SpecRun{
+					SuiteRunID:     suiteRun.ID,
+					Name:           inputSpecRun.SpecDescription,
+					Status:         inputSpecRun.Status,
+					StartTime:      specStartTime,
+					EndTime:        specEndTime,
+					ErrorMessage:   inputSpecRun.Message,
+					FailureMessage: inputSpecRun.Message,
+				}
+
+				// Calculate spec duration
+				if specEndTime != nil && !specStartTime.IsZero() {
+					specRun.Duration = specEndTime.Sub(specStartTime)
+				}
+
+				if err := h.testingService.CreateSpecRun(c.Request.Context(), specRun); err != nil {
+					h.logger.WithError(err).Error("Failed to create spec run",
+						"spec_name", specRun.Name,
+						"suite_name", suiteRun.Name)
+					continue // Continue with other specs
+				}
+			}
 		}
 	} else {
 		// Test run already exists
@@ -386,7 +497,7 @@ func (h *FernLegacyHandler) convertTestRunToLegacyAPI(tr *domain.TestRun) gin.H 
 	if tr.EndTime != nil {
 		endTime = tr.EndTime.Format(time.RFC3339)
 	}
-	
+
 	return gin.H{
 		"uuid":         tr.RunID,
 		"project_uuid": tr.ProjectID,
