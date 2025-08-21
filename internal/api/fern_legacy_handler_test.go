@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -26,20 +27,22 @@ type mockTestRunService struct {
 	mock.Mock
 }
 
-func (m *mockTestRunService) CreateTestRun(ctx interface{}, tr *domain.TestRun) error {
+func (m *mockTestRunService) CreateTestRun(ctx context.Context, tr *domain.TestRun) error {
 	args := m.Called(ctx, tr)
 	return args.Error(0)
 }
-func (m *mockTestRunService) GetTestRunByRunID(ctx interface{}, runID string) (*domain.TestRun, error) {
+func (m *mockTestRunService) GetTestRunByRunID(ctx context.Context, runID string) (*domain.TestRun, error) {
 	args := m.Called(ctx, runID)
 	return args.Get(0).(*domain.TestRun), args.Error(1)
 }
-func (m *mockTestRunService) ListTestRuns(ctx interface{}, projectUUID string, limit, offset int) ([]*domain.TestRun, int, error) {
+func (m *mockTestRunService) ListTestRuns(ctx context.Context, projectUUID string, limit, offset int) ([]*domain.TestRun, int64, error) {
 	args := m.Called(ctx, projectUUID, limit, offset)
-	return args.Get(0).([]*domain.TestRun), args.Int(1), args.Error(2)
+	return args.Get(0).([]*domain.TestRun), args.Get(1).(int64), args.Error(2)
 }
-func (m *mockTestRunService) CreateSuiteRun(ctx interface{}, sr *domain.SuiteRun) error { return nil }
-func (m *mockTestRunService) CreateSpecRun(ctx interface{}, sr *domain.SpecRun) error   { return nil }
+func (m *mockTestRunService) CreateSuiteRun(ctx context.Context, sr *domain.SuiteRun) error {
+	return nil
+}
+func (m *mockTestRunService) CreateSpecRun(ctx context.Context, sr *domain.SpecRun) error { return nil }
 
 // ...other methods as needed...
 
@@ -47,18 +50,18 @@ type mockProjectService struct {
 	mock.Mock
 }
 
-func (m *mockProjectService) CreateProject(ctx interface{}, id projectsDomain.ProjectID, name string, team projectsDomain.Team, source string) (*projectsDomain.Project, error) {
+func (m *mockProjectService) CreateProject(ctx context.Context, id projectsDomain.ProjectID, name string, team projectsDomain.Team, source string) (*projectsDomain.Project, error) {
 	args := m.Called(ctx, id, name, team, source)
 	return args.Get(0).(*projectsDomain.Project), args.Error(1)
 }
-func (m *mockProjectService) GetProject(ctx interface{}, id projectsDomain.ProjectID) (*projectsDomain.Project, error) {
+func (m *mockProjectService) GetProject(ctx context.Context, id projectsDomain.ProjectID) (*projectsDomain.Project, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*projectsDomain.Project), args.Error(1)
 }
-func (m *mockProjectService) UpdateProject(ctx interface{}, id projectsDomain.ProjectID, req projectsApp.UpdateProjectRequest) error {
+func (m *mockProjectService) UpdateProject(ctx context.Context, id projectsDomain.ProjectID, req projectsApp.UpdateProjectRequest) error {
 	return nil
 }
-func (m *mockProjectService) ListProjects(ctx interface{}, limit, offset int) ([]*projectsDomain.Project, int, error) {
+func (m *mockProjectService) ListProjects(ctx context.Context, limit, offset int) ([]*projectsDomain.Project, int, error) {
 	args := m.Called(ctx, limit, offset)
 	return args.Get(0).([]*projectsDomain.Project), args.Int(1), args.Error(2)
 }

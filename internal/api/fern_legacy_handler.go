@@ -2,6 +2,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -25,19 +26,19 @@ type FernLegacyHandler struct {
 
 // TestRunService is an interface for test run operations
 type TestRunService interface {
-	CreateTestRun(ctx interface{}, tr *domain.TestRun) error
-	GetTestRunByRunID(ctx interface{}, runID string) (*domain.TestRun, error)
-	ListTestRuns(ctx interface{}, projectUUID string, limit, offset int) ([]*domain.TestRun, int, error)
-	CreateSuiteRun(ctx interface{}, sr *domain.SuiteRun) error
-	CreateSpecRun(ctx interface{}, sr *domain.SpecRun) error
+	CreateTestRun(ctx context.Context, tr *domain.TestRun) error
+	GetTestRunByRunID(ctx context.Context, runID string) (*domain.TestRun, error)
+	ListTestRuns(ctx context.Context, projectUUID string, limit, offset int) ([]*domain.TestRun, int64, error)
+	CreateSuiteRun(ctx context.Context, sr *domain.SuiteRun) error
+	CreateSpecRun(ctx context.Context, sr *domain.SpecRun) error
 }
 
 // ProjectService is an interface for project operations
 type ProjectService interface {
-	CreateProject(ctx interface{}, id projectsDomain.ProjectID, name string, team projectsDomain.Team, source string) (*projectsDomain.Project, error)
-	GetProject(ctx interface{}, id projectsDomain.ProjectID) (*projectsDomain.Project, error)
-	UpdateProject(ctx interface{}, id projectsDomain.ProjectID, req projectsApp.UpdateProjectRequest) error
-	ListProjects(ctx interface{}, limit, offset int) ([]*projectsDomain.Project, int, error)
+	CreateProject(ctx context.Context, id projectsDomain.ProjectID, name string, team projectsDomain.Team, source string) (*projectsDomain.Project, error)
+	GetProject(ctx context.Context, id projectsDomain.ProjectID) (*projectsDomain.Project, error)
+	UpdateProject(ctx context.Context, id projectsDomain.ProjectID, req projectsApp.UpdateProjectRequest) error
+	ListProjects(ctx context.Context, limit, offset int) ([]*projectsDomain.Project, int, error)
 }
 
 // NewFernLegacyHandler creates a new fern legacy handler
