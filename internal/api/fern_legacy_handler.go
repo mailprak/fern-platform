@@ -38,7 +38,7 @@ type ProjectService interface {
 	CreateProject(ctx context.Context, id projectsDomain.ProjectID, name string, team projectsDomain.Team, source string) (*projectsDomain.Project, error)
 	GetProject(ctx context.Context, id projectsDomain.ProjectID) (*projectsDomain.Project, error)
 	UpdateProject(ctx context.Context, id projectsDomain.ProjectID, req projectsApp.UpdateProjectRequest) error
-	ListProjects(ctx context.Context, limit, offset int) ([]*projectsDomain.Project, int, error)
+	ListProjects(ctx context.Context, limit, offset int) ([]*projectsDomain.Project, int64, error)
 }
 
 // NewFernLegacyHandler creates a new fern legacy handler

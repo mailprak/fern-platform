@@ -61,9 +61,9 @@ func (m *mockProjectService) GetProject(ctx context.Context, id projectsDomain.P
 func (m *mockProjectService) UpdateProject(ctx context.Context, id projectsDomain.ProjectID, req projectsApp.UpdateProjectRequest) error {
 	return nil
 }
-func (m *mockProjectService) ListProjects(ctx context.Context, limit, offset int) ([]*projectsDomain.Project, int, error) {
+func (m *mockProjectService) ListProjects(ctx context.Context, limit, offset int) ([]*projectsDomain.Project, int64, error) {
 	args := m.Called(ctx, limit, offset)
-	return args.Get(0).([]*projectsDomain.Project), args.Int(1), args.Error(2)
+	return args.Get(0).([]*projectsDomain.Project), args.Get(1).(int64), args.Error(2)
 }
 
 func TestCreateFernTestReport(t *testing.T) {
