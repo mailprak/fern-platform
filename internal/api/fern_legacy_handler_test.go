@@ -1,6 +1,3 @@
-	r := gin.Default()
-	r := gin.Default()
-	r := gin.Default()
 package api
 
 import (
@@ -12,14 +9,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	projectsApp "github.com/guidewire-oss/fern-platform/internal/domains/projects/application"
 	projectsDomain "github.com/guidewire-oss/fern-platform/internal/domains/projects/domain"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	// ...existing code...
 	"github.com/guidewire-oss/fern-platform/internal/domains/testing/domain"
-	"github.com/guidewire-oss/fern-platform/pkg/logging"
 	"github.com/guidewire-oss/fern-platform/pkg/config"
+	"github.com/guidewire-oss/fern-platform/pkg/logging"
 )
 
 // Mocks
@@ -41,13 +39,14 @@ func (m *mockTestRunService) ListTestRuns(ctx interface{}, projectUUID string, l
 	return args.Get(0).([]*domain.TestRun), args.Int(1), args.Error(2)
 }
 func (m *mockTestRunService) CreateSuiteRun(ctx interface{}, sr *domain.SuiteRun) error { return nil }
-func (m *mockTestRunService) CreateSpecRun(ctx interface{}, sr *domain.SpecRun) error { return nil }
+func (m *mockTestRunService) CreateSpecRun(ctx interface{}, sr *domain.SpecRun) error   { return nil }
 
 // ...other methods as needed...
 
 type mockProjectService struct {
 	mock.Mock
 }
+
 func (m *mockProjectService) CreateProject(ctx interface{}, id projectsDomain.ProjectID, name string, team projectsDomain.Team, source string) (*projectsDomain.Project, error) {
 	args := m.Called(ctx, id, name, team, source)
 	return args.Get(0).(*projectsDomain.Project), args.Error(1)
@@ -56,7 +55,9 @@ func (m *mockProjectService) GetProject(ctx interface{}, id projectsDomain.Proje
 	args := m.Called(ctx, id)
 	return args.Get(0).(*projectsDomain.Project), args.Error(1)
 }
-func (m *mockProjectService) UpdateProject(ctx interface{}, id projectsDomain.ProjectID, req projectsApp.UpdateProjectRequest) error { return nil }
+func (m *mockProjectService) UpdateProject(ctx interface{}, id projectsDomain.ProjectID, req projectsApp.UpdateProjectRequest) error {
+	return nil
+}
 func (m *mockProjectService) ListProjects(ctx interface{}, limit, offset int) ([]*projectsDomain.Project, int, error) {
 	args := m.Called(ctx, limit, offset)
 	return args.Get(0).([]*projectsDomain.Project), args.Int(1), args.Error(2)
@@ -70,7 +71,7 @@ func TestCreateFernTestReport(t *testing.T) {
 	cfg := &config.LoggingConfig{Level: "debug", Format: "text", Output: "stdout", Structured: false}
 	logger, _ := logging.NewLogger(cfg)
 	handler := NewFernLegacyHandler(mockTestRunSvc, mockProjectSvc, logger)
-	 handler.RegisterRoutes(r.Group("/api"))
+	handler.RegisterRoutes(r.Group("/api"))
 
 	project := &projectsDomain.Project{}
 	mockProjectSvc.On("GetProject", mock.Anything, projectsDomain.ProjectID("proj-123")).Return(project, nil)
@@ -78,11 +79,11 @@ func TestCreateFernTestReport(t *testing.T) {
 	mockTestRunSvc.On("CreateTestRun", mock.Anything, mock.Anything).Return(nil)
 
 	body := map[string]interface{}{
-		"test_project_id": "proj-123",
+		"test_project_id":   "proj-123",
 		"test_project_name": "TestProj",
-		"test_seed": 42,
-		"start_time": time.Now().Format(time.RFC3339),
-		"suite_runs": []interface{}{},
+		"test_seed":         42,
+		"start_time":        time.Now().Format(time.RFC3339),
+		"suite_runs":        []interface{}{},
 	}
 	b, _ := json.Marshal(body)
 	w := httptest.NewRecorder()
@@ -94,16 +95,15 @@ func TestCreateFernTestReport(t *testing.T) {
 }
 
 func TestListFernTestReports(t *testing.T) {
-	r := gin.Default()
 	gin.SetMode(gin.TestMode)
-	 r := gin.Default()
+	r := gin.Default()
 	mockTestRunSvc := new(mockTestRunService)
 	mockProjectSvc := new(mockProjectService)
 	cfg := &config.LoggingConfig{Level: "debug", Format: "text", Output: "stdout", Structured: false}
 	logger, _ := logging.NewLogger(cfg)
 	handler := NewFernLegacyHandler(mockTestRunSvc, mockProjectSvc, logger)
-	 handler.RegisterRoutes(r.Group("/api"))
-	 handler.RegisterRoutes(r.Group("/api"))
+	handler.RegisterRoutes(r.Group("/api"))
+	handler.RegisterRoutes(r.Group("/api"))
 
 	tr := &domain.TestRun{RunID: "run-1", ProjectID: "proj-1", GitBranch: "main", GitCommit: "abc123", Status: "completed", StartTime: time.Now()}
 	mockTestRunSvc.On("ListTestRuns", mock.Anything, "proj-1", 20, 0).Return([]*domain.TestRun{tr}, 1, nil)
@@ -115,16 +115,13 @@ func TestListFernTestReports(t *testing.T) {
 }
 
 func TestGetFernTestReport_NotFound(t *testing.T) {
-	r := gin.Default()
 	gin.SetMode(gin.TestMode)
-	 r := gin.Default()
+	r := gin.Default()
 	mockTestRunSvc := new(mockTestRunService)
 	mockProjectSvc := new(mockProjectService)
 	cfg := &config.LoggingConfig{Level: "debug", Format: "text", Output: "stdout", Structured: false}
 	logger, _ := logging.NewLogger(cfg)
 	handler := NewFernLegacyHandler(mockTestRunSvc, mockProjectSvc, logger)
-	 handler.RegisterRoutes(r.Group("/api"))
-	r := gin.Default()
 	handler.RegisterRoutes(r.Group("/api"))
 
 	mockTestRunSvc.On("GetTestRunByRunID", mock.Anything, "run-404").Return((*domain.TestRun)(nil), assert.AnError)
