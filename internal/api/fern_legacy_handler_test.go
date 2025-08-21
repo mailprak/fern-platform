@@ -67,8 +67,8 @@ func (m *mockProjectService) ListProjects(ctx context.Context, limit, offset int
 }
 
 func TestCreateFernTestReport(t *testing.T) {
-	r := gin.Default()
 	gin.SetMode(gin.TestMode)
+	r := gin.New() // Use gin.New() instead of gin.Default() to avoid middleware conflicts
 	mockTestRunSvc := new(mockTestRunService)
 	mockProjectSvc := new(mockProjectService)
 	cfg := &config.LoggingConfig{Level: "debug", Format: "text", Output: "stdout", Structured: false}
@@ -99,13 +99,12 @@ func TestCreateFernTestReport(t *testing.T) {
 
 func TestListFernTestReports(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	r := gin.Default()
+	r := gin.New() // Use gin.New() instead of gin.Default()
 	mockTestRunSvc := new(mockTestRunService)
 	mockProjectSvc := new(mockProjectService)
 	cfg := &config.LoggingConfig{Level: "debug", Format: "text", Output: "stdout", Structured: false}
 	logger, _ := logging.NewLogger(cfg)
 	handler := NewFernLegacyHandler(mockTestRunSvc, mockProjectSvc, logger)
-	handler.RegisterRoutes(r.Group("/api"))
 	handler.RegisterRoutes(r.Group("/api"))
 
 	tr := &domain.TestRun{RunID: "run-1", ProjectID: "proj-1", GitBranch: "main", GitCommit: "abc123", Status: "completed", StartTime: time.Now()}
@@ -119,7 +118,7 @@ func TestListFernTestReports(t *testing.T) {
 
 func TestGetFernTestReport_NotFound(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	r := gin.Default()
+	r := gin.New() // Use gin.New() instead of gin.Default()
 	mockTestRunSvc := new(mockTestRunService)
 	mockProjectSvc := new(mockProjectService)
 	cfg := &config.LoggingConfig{Level: "debug", Format: "text", Output: "stdout", Structured: false}
