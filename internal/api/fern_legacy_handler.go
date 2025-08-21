@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	projectsApp "github.com/guidewire-oss/fern-platform/internal/domains/projects/application"
 	projectsDomain "github.com/guidewire-oss/fern-platform/internal/domains/projects/domain"
-	"github.com/guidewire-oss/fern-platform/internal/domains/testing/application"
 	"github.com/guidewire-oss/fern-platform/internal/domains/testing/domain"
 	"github.com/guidewire-oss/fern-platform/pkg/logging"
 )
@@ -20,14 +19,31 @@ import (
 // FernLegacyHandler handles legacy fern-reporter compatible endpoints
 type FernLegacyHandler struct {
 	*BaseHandler
-	testingService *application.TestRunService
-	projectService *projectsApp.ProjectService
+	testingService TestRunService
+	projectService ProjectService
+}
+
+// TestRunService is an interface for test run operations
+type TestRunService interface {
+	CreateTestRun(ctx interface{}, tr *domain.TestRun) error
+	GetTestRunByRunID(ctx interface{}, runID string) (*domain.TestRun, error)
+	ListTestRuns(ctx interface{}, projectUUID string, limit, offset int) ([]*domain.TestRun, int, error)
+	CreateSuiteRun(ctx interface{}, sr *domain.SuiteRun) error
+	CreateSpecRun(ctx interface{}, sr *domain.SpecRun) error
+}
+
+// ProjectService is an interface for project operations
+type ProjectService interface {
+	CreateProject(ctx interface{}, id projectsDomain.ProjectID, name string, team projectsDomain.Team, source string) (*projectsDomain.Project, error)
+	GetProject(ctx interface{}, id projectsDomain.ProjectID) (*projectsDomain.Project, error)
+	UpdateProject(ctx interface{}, id projectsDomain.ProjectID, req projectsApp.UpdateProjectRequest) error
+	ListProjects(ctx interface{}, limit, offset int) ([]*projectsDomain.Project, int, error)
 }
 
 // NewFernLegacyHandler creates a new fern legacy handler
 func NewFernLegacyHandler(
-	testingService *application.TestRunService,
-	projectService *projectsApp.ProjectService,
+	testingService TestRunService,
+	projectService ProjectService,
 	logger *logging.Logger,
 ) *FernLegacyHandler {
 	return &FernLegacyHandler{
