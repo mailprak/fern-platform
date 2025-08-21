@@ -108,7 +108,7 @@ func TestListFernTestReports(t *testing.T) {
 	handler.RegisterRoutes(r.Group("/api"))
 
 	tr := &domain.TestRun{RunID: "run-1", ProjectID: "proj-1", GitBranch: "main", GitCommit: "abc123", Status: "completed", StartTime: time.Now()}
-	mockTestRunSvc.On("ListTestRuns", mock.Anything, "proj-1", 20, 0).Return([]*domain.TestRun{tr}, 1, nil)
+	mockTestRunSvc.On("ListTestRuns", mock.Anything, "proj-1", 20, 0).Return([]*domain.TestRun{tr}, int64(1), nil)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/reports/testruns?project_uuid=proj-1", nil)
