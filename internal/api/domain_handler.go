@@ -134,9 +134,10 @@ func (h *DomainHandler) RegisterRoutes(router *gin.Engine) {
 
 	// Static file serving
 	router.Static("/web", "./web")
-	router.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "/web/")
-	})
+	// Note: Root route "/" is handled by DomainHandlerV2 when FERN_USE_SPLIT_HANDLERS=true
+	// router.GET("/", func(c *gin.Context) {
+	//	c.Redirect(http.StatusMovedPermanently, "/web/")
+	// })
 }
 
 // Helper function to check if user is authenticated
