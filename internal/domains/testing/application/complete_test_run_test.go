@@ -5,9 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/guidewire-oss/fern-platform/internal/domains/testing/domain"
-	"github.com/stretchr/testify/assert"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/guidewire-oss/fern-platform/internal/domains/testing/domain"
 )
 
 type mockTestRunRepo struct{ mock.Mock }
@@ -52,37 +54,56 @@ func (m *mockFlakyRepo) FindByTestName(ctx context.Context, projectID, testName 
 }
 func (m *mockFlakyRepo) Update(ctx context.Context, flakyTest *domain.FlakyTest) error { return nil }
 
-func TestCompleteTestRunHandler_Handle(t *testing.T) {
-	mockRepo := new(mockTestRunRepo)
-	mockFlaky := new(mockFlakyRepo)
-	h := NewCompleteTestRunHandler(mockRepo, mockFlaky)
-
-	tr := &domain.TestRun{RunID: "run-1", StartTime: time.Now().Add(-time.Hour)}
-	mockRepo.On("GetByRunID", mock.Anything, "run-1").Return(tr, nil)
-	mockRepo.On("Update", mock.Anything, tr).Return(nil)
-
-	err := h.Handle(context.Background(), CompleteTestRunCommand{RunID: "run-1"})
-	assert.NoError(t, err)
-	assert.Equal(t, "completed", tr.Status)
-	assert.NotNil(t, tr.EndTime)
-	assert.True(t, tr.Duration > 0)
+func TestCompleteTestRunHandlerSuite(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "CompleteTestRunHandler Suite")
 }
 
-func TestCompleteTestRunHandler_Handle_NotFound(t *testing.T) {
-	mockRepo := new(mockTestRunRepo)
-	mockFlaky := new(mockFlakyRepo)
-	h := NewCompleteTestRunHandler(mockRepo, mockFlaky)
-	mockRepo.On("GetByRunID", mock.Anything, "run-x").Return((*domain.TestRun)(nil), nil)
+var _ = Describe("CompleteTestRunHandler", Label("unit", "application"), func() {
+	var (
+		mockRepo  *mockTestRunRepo
+		mockFlaky *mockFlakyRepo
+		handler   *CompleteTestRunHandler
+	)
 
-	err := h.Handle(context.Background(), CompleteTestRunCommand{RunID: "run-x"})
-	assert.Error(t, err)
-}
+	BeforeEach(func() {
+		mockRepo = new(mockTestRunRepo)
+		mockFlaky = new(mockFlakyRepo)
+		handler = NewCompleteTestRunHandler(mockRepo, mockFlaky)
+	})
 
-func TestCompleteTestRunHandler_Handle_EmptyRunID(t *testing.T) {
-	mockRepo := new(mockTestRunRepo)
-	mockFlaky := new(mockFlakyRepo)
-	h := NewCompleteTestRunHandler(mockRepo, mockFlaky)
+	Describe("Handle", func() {
+		Context("when test run exists", func() {
+			It("should complete the test run successfully", func() {
+				tr := &domain.TestRun{RunID: "run-1", StartTime: time.Now().Add(-time.Hour)}
+				mockRepo.On("GetByRunID", mock.Anything, "run-1").Return(tr, nil)
+				mockRepo.On("Update", mock.Anything, tr).Return(nil)
 
-	err := h.Handle(context.Background(), CompleteTestRunCommand{RunID: ""})
-	assert.Error(t, err)
-}
+				err := handler.Handle(context.Background(), CompleteTestRunCommand{RunID: "run-1"})
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(tr.Status).To(Equal("completed"))
+				Expect(tr.EndTime).ToNot(BeNil())
+				Expect(tr.Duration).To(BeNumerically(">", 0))
+			})
+		})
+
+		Context("when test run is not found", func() {
+			It("should return an error", func() {
+				mockRepo.On("GetByRunID", mock.Anything, "run-x").Return((*domain.TestRun)(nil), nil)
+
+				err := handler.Handle(context.Background(), CompleteTestRunCommand{RunID: "run-x"})
+
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when run ID is empty", func() {
+			It("should return an error", func() {
+				err := handler.Handle(context.Background(), CompleteTestRunCommand{RunID: ""})
+
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+})

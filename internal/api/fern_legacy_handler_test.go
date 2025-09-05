@@ -4,22 +4,28 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	projectsApp "github.com/guidewire-oss/fern-platform/internal/domains/projects/application"
-	projectsDomain "github.com/guidewire-oss/fern-platform/internal/domains/projects/domain"
-	"github.com/stretchr/testify/assert"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
-	// ...existing code...
+	projectsApp "github.com/guidewire-oss/fern-platform/internal/domains/projects/application"
+	projectsDomain "github.com/guidewire-oss/fern-platform/internal/domains/projects/domain"
 	"github.com/guidewire-oss/fern-platform/internal/domains/testing/domain"
 	"github.com/guidewire-oss/fern-platform/pkg/config"
 	"github.com/guidewire-oss/fern-platform/pkg/logging"
 )
+
+func TestFernLegacyHandlerSuite(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Fern Legacy Handler Suite")
+}
 
 // Mocks
 
@@ -66,70 +72,73 @@ func (m *mockProjectService) ListProjects(ctx context.Context, limit, offset int
 	return args.Get(0).([]*projectsDomain.Project), args.Get(1).(int64), args.Error(2)
 }
 
-func TestCreateFernTestReport(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	r := gin.New() // Use gin.New() instead of gin.Default() to avoid middleware conflicts
-	mockTestRunSvc := new(mockTestRunService)
-	mockProjectSvc := new(mockProjectService)
-	cfg := &config.LoggingConfig{Level: "debug", Format: "text", Output: "stdout", Structured: false}
-	logger, _ := logging.NewLogger(cfg)
-	handler := NewFernLegacyHandler(mockTestRunSvc, mockProjectSvc, logger)
-	handler.RegisterRoutes(r.Group("/api"))
+var _ = Describe("FernLegacyHandler", Label("unit", "api"), func() {
+	var (
+		r              *gin.Engine
+		mockTestRunSvc *mockTestRunService
+		mockProjectSvc *mockProjectService
+		handler        *FernLegacyHandler
+		logger         *logging.Logger
+	)
 
-	project := &projectsDomain.Project{}
-	mockProjectSvc.On("GetProject", mock.Anything, projectsDomain.ProjectID("proj-123")).Return(project, nil)
-	mockTestRunSvc.On("GetTestRunByRunID", mock.Anything, mock.Anything).Return((*domain.TestRun)(nil), nil)
-	mockTestRunSvc.On("CreateTestRun", mock.Anything, mock.Anything).Return(nil)
+	BeforeEach(func() {
+		gin.SetMode(gin.TestMode)
+		r = gin.New() // Use gin.New() instead of gin.Default() to avoid middleware conflicts
+		mockTestRunSvc = new(mockTestRunService)
+		mockProjectSvc = new(mockProjectService)
+		cfg := &config.LoggingConfig{Level: "debug", Format: "text", Output: "stdout", Structured: false}
+		logger, _ = logging.NewLogger(cfg)
+		handler = NewFernLegacyHandler(mockTestRunSvc, mockProjectSvc, logger)
+		handler.RegisterRoutes(r.Group("/api"))
+	})
 
-	body := map[string]interface{}{
-		"test_project_id":   "proj-123",
-		"test_project_name": "TestProj",
-		"test_seed":         42,
-		"start_time":        time.Now().Format(time.RFC3339),
-		"suite_runs":        []interface{}{},
-	}
-	b, _ := json.Marshal(body)
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/api/reports/testrun", bytes.NewReader(b))
-	req.Header.Set("Content-Type", "application/json")
+	Describe("CreateFernTestReport", func() {
+		It("should create a test report successfully", func() {
+			project := &projectsDomain.Project{}
+			mockProjectSvc.On("GetProject", mock.Anything, projectsDomain.ProjectID("proj-123")).Return(project, nil)
+			mockTestRunSvc.On("GetTestRunByRunID", mock.Anything, mock.Anything).Return((*domain.TestRun)(nil), nil)
+			mockTestRunSvc.On("CreateTestRun", mock.Anything, mock.Anything).Return(nil)
 
-	r.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusCreated, w.Code)
-}
+			body := map[string]interface{}{
+				"test_project_id":   "proj-123",
+				"test_project_name": "TestProj",
+				"test_seed":         42,
+				"start_time":        time.Now().Format(time.RFC3339),
+				"suite_runs":        []interface{}{},
+			}
+			b, _ := json.Marshal(body)
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("POST", "/api/reports/testrun", bytes.NewReader(b))
+			req.Header.Set("Content-Type", "application/json")
 
-func TestListFernTestReports(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	r := gin.New() // Use gin.New() instead of gin.Default()
-	mockTestRunSvc := new(mockTestRunService)
-	mockProjectSvc := new(mockProjectService)
-	cfg := &config.LoggingConfig{Level: "debug", Format: "text", Output: "stdout", Structured: false}
-	logger, _ := logging.NewLogger(cfg)
-	handler := NewFernLegacyHandler(mockTestRunSvc, mockProjectSvc, logger)
-	handler.RegisterRoutes(r.Group("/api"))
+			r.ServeHTTP(w, req)
+			Expect(w.Code).To(Equal(http.StatusCreated))
+		})
+	})
 
-	tr := &domain.TestRun{RunID: "run-1", ProjectID: "proj-1", GitBranch: "main", GitCommit: "abc123", Status: "completed", StartTime: time.Now()}
-	mockTestRunSvc.On("ListTestRuns", mock.Anything, "proj-1", 20, 0).Return([]*domain.TestRun{tr}, int64(1), nil)
+	Describe("ListFernTestReports", func() {
+		It("should list test reports successfully", func() {
+			tr := &domain.TestRun{RunID: "run-1", ProjectID: "proj-1", GitBranch: "main", GitCommit: "abc123", Status: "completed", StartTime: time.Now()}
+			mockTestRunSvc.On("ListTestRuns", mock.Anything, "proj-1", 20, 0).Return([]*domain.TestRun{tr}, int64(1), nil)
 
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/reports/testruns?project_uuid=proj-1", nil)
-	r.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
-}
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/api/reports/testruns?project_uuid=proj-1", nil)
+			r.ServeHTTP(w, req)
+			Expect(w.Code).To(Equal(http.StatusOK))
+		})
+	})
 
-func TestGetFernTestReport_NotFound(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	r := gin.New() // Use gin.New() instead of gin.Default()
-	mockTestRunSvc := new(mockTestRunService)
-	mockProjectSvc := new(mockProjectService)
-	cfg := &config.LoggingConfig{Level: "debug", Format: "text", Output: "stdout", Structured: false}
-	logger, _ := logging.NewLogger(cfg)
-	handler := NewFernLegacyHandler(mockTestRunSvc, mockProjectSvc, logger)
-	handler.RegisterRoutes(r.Group("/api"))
+	Describe("GetFernTestReport", func() {
+		Context("when test report is not found", func() {
+			It("should return 404", func() {
+				notFoundErr := fmt.Errorf("test run not found")
+				mockTestRunSvc.On("GetTestRunByRunID", mock.Anything, "run-404").Return((*domain.TestRun)(nil), notFoundErr)
 
-	mockTestRunSvc.On("GetTestRunByRunID", mock.Anything, "run-404").Return((*domain.TestRun)(nil), assert.AnError)
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/reports/testrun/run-404", nil)
-	r.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusNotFound, w.Code)
-}
+				w := httptest.NewRecorder()
+				req, _ := http.NewRequest("GET", "/api/reports/testrun/run-404", nil)
+				r.ServeHTTP(w, req)
+				Expect(w.Code).To(Equal(http.StatusNotFound))
+			})
+		})
+	})
+})
