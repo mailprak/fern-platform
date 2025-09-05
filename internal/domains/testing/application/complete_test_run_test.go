@@ -1,14 +1,14 @@
-package application
+package application_test
 
 import (
 	"context"
-	"testing"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/guidewire-oss/fern-platform/internal/domains/testing/application"
 	"github.com/guidewire-oss/fern-platform/internal/domains/testing/domain"
 )
 
@@ -54,22 +54,19 @@ func (m *mockFlakyRepo) FindByTestName(ctx context.Context, projectID, testName 
 }
 func (m *mockFlakyRepo) Update(ctx context.Context, flakyTest *domain.FlakyTest) error { return nil }
 
-func TestCompleteTestRunHandlerSuite(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "CompleteTestRunHandler Suite")
-}
+// Note: Suite entry point defined in test_run_service_test.go (TestApplication)
 
 var _ = Describe("CompleteTestRunHandler", Label("unit", "application"), func() {
 	var (
 		mockRepo  *mockTestRunRepo
 		mockFlaky *mockFlakyRepo
-		handler   *CompleteTestRunHandler
+		handler   *application.CompleteTestRunHandler
 	)
 
 	BeforeEach(func() {
 		mockRepo = new(mockTestRunRepo)
 		mockFlaky = new(mockFlakyRepo)
-		handler = NewCompleteTestRunHandler(mockRepo, mockFlaky)
+		handler = application.NewCompleteTestRunHandler(mockRepo, mockFlaky)
 	})
 
 	Describe("Handle", func() {
@@ -79,7 +76,7 @@ var _ = Describe("CompleteTestRunHandler", Label("unit", "application"), func() 
 				mockRepo.On("GetByRunID", mock.Anything, "run-1").Return(tr, nil)
 				mockRepo.On("Update", mock.Anything, tr).Return(nil)
 
-				err := handler.Handle(context.Background(), CompleteTestRunCommand{RunID: "run-1"})
+				err := handler.Handle(context.Background(), application.CompleteTestRunCommand{RunID: "run-1"})
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(tr.Status).To(Equal("completed"))
@@ -92,7 +89,7 @@ var _ = Describe("CompleteTestRunHandler", Label("unit", "application"), func() 
 			It("should return an error", func() {
 				mockRepo.On("GetByRunID", mock.Anything, "run-x").Return((*domain.TestRun)(nil), nil)
 
-				err := handler.Handle(context.Background(), CompleteTestRunCommand{RunID: "run-x"})
+				err := handler.Handle(context.Background(), application.CompleteTestRunCommand{RunID: "run-x"})
 
 				Expect(err).To(HaveOccurred())
 			})
@@ -100,7 +97,7 @@ var _ = Describe("CompleteTestRunHandler", Label("unit", "application"), func() 
 
 		Context("when run ID is empty", func() {
 			It("should return an error", func() {
-				err := handler.Handle(context.Background(), CompleteTestRunCommand{RunID: ""})
+				err := handler.Handle(context.Background(), application.CompleteTestRunCommand{RunID: ""})
 
 				Expect(err).To(HaveOccurred())
 			})

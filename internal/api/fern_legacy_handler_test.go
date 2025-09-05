@@ -1,4 +1,4 @@
-package api
+package api_test
 
 import (
 	"bytes"
@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +14,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
+	// Import the api package to test exported handlers using the external test package pattern
+	"github.com/guidewire-oss/fern-platform/internal/api"
 	projectsApp "github.com/guidewire-oss/fern-platform/internal/domains/projects/application"
 	projectsDomain "github.com/guidewire-oss/fern-platform/internal/domains/projects/domain"
 	"github.com/guidewire-oss/fern-platform/internal/domains/testing/domain"
@@ -22,10 +23,8 @@ import (
 	"github.com/guidewire-oss/fern-platform/pkg/logging"
 )
 
-func TestFernLegacyHandlerSuite(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Fern Legacy Handler Suite")
-}
+// Note: We intentionally do NOT declare a RunSpecs entry point here.
+// api_suite_test.go provides the single Ginkgo RunSpecs invocation for this package.
 
 // Mocks
 
@@ -77,7 +76,7 @@ var _ = Describe("FernLegacyHandler", Label("unit", "api"), func() {
 		r              *gin.Engine
 		mockTestRunSvc *mockTestRunService
 		mockProjectSvc *mockProjectService
-		handler        *FernLegacyHandler
+		handler        *api.FernLegacyHandler
 		logger         *logging.Logger
 	)
 
@@ -88,7 +87,7 @@ var _ = Describe("FernLegacyHandler", Label("unit", "api"), func() {
 		mockProjectSvc = new(mockProjectService)
 		cfg := &config.LoggingConfig{Level: "debug", Format: "text", Output: "stdout", Structured: false}
 		logger, _ = logging.NewLogger(cfg)
-		handler = NewFernLegacyHandler(mockTestRunSvc, mockProjectSvc, logger)
+		handler = api.NewFernLegacyHandler(mockTestRunSvc, mockProjectSvc, logger)
 		handler.RegisterRoutes(r.Group("/api"))
 	})
 
