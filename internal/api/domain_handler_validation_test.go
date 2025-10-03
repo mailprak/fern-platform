@@ -5,7 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	
+
 	"github.com/guidewire-oss/fern-platform/internal/testhelpers"
 )
 
@@ -333,7 +333,7 @@ func validatePagination(input interface{}) error {
 		default:
 			return fmt.Errorf("limit must be a number")
 		}
-		
+
 		if limit < 0 {
 			return fmt.Errorf("limit must be non-negative")
 		}
@@ -356,7 +356,7 @@ func validatePagination(input interface{}) error {
 		default:
 			return fmt.Errorf("offset must be a number")
 		}
-		
+
 		if offset < 0 {
 			return fmt.Errorf("offset must be non-negative")
 		}
@@ -386,9 +386,9 @@ func validateProjectID(id string) error {
 
 	// Allow alphanumeric, dash, underscore, and dot
 	for _, r := range id {
-		if !((r >= 'a' && r <= 'z') || 
-			(r >= 'A' && r <= 'Z') || 
-			(r >= '0' && r <= '9') || 
+		if !((r >= 'a' && r <= 'z') ||
+			(r >= 'A' && r <= 'Z') ||
+			(r >= '0' && r <= '9') ||
 			r == '-' || r == '_' || r == '.') {
 			return fmt.Errorf("project ID contains invalid character: %c", r)
 		}

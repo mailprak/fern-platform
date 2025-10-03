@@ -22,22 +22,22 @@ func NewGormJiraConnectionRepository(db *gorm.DB) integrations.JiraConnectionRep
 // Create saves a new JIRA connection
 func (r *GormJiraConnectionRepository) Create(ctx context.Context, connection *integrations.JiraConnection) error {
 	model := r.toModel(connection)
-	
+
 	if err := r.db.WithContext(ctx).Create(&model).Error; err != nil {
 		return fmt.Errorf("failed to create JIRA connection: %w", err)
 	}
-	
+
 	return nil
 }
 
 // Update updates an existing JIRA connection
 func (r *GormJiraConnectionRepository) Update(ctx context.Context, connection *integrations.JiraConnection) error {
 	model := r.toModel(connection)
-	
+
 	if err := r.db.WithContext(ctx).Save(&model).Error; err != nil {
 		return fmt.Errorf("failed to update JIRA connection: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -46,53 +46,53 @@ func (r *GormJiraConnectionRepository) Delete(ctx context.Context, connectionID 
 	if err := r.db.WithContext(ctx).Delete(&database.JiraConnection{}, "id = ?", connectionID).Error; err != nil {
 		return fmt.Errorf("failed to delete JIRA connection: %w", err)
 	}
-	
+
 	return nil
 }
 
 // FindByID retrieves a connection by ID
 func (r *GormJiraConnectionRepository) FindByID(ctx context.Context, connectionID string) (*integrations.JiraConnection, error) {
 	var model database.JiraConnection
-	
+
 	if err := r.db.WithContext(ctx).First(&model, "id = ?", connectionID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("JIRA connection not found")
 		}
 		return nil, fmt.Errorf("failed to find JIRA connection: %w", err)
 	}
-	
+
 	return r.toDomain(&model), nil
 }
 
 // FindByProjectID retrieves all connections for a project
 func (r *GormJiraConnectionRepository) FindByProjectID(ctx context.Context, projectID string) ([]*integrations.JiraConnection, error) {
 	var models []database.JiraConnection
-	
+
 	if err := r.db.WithContext(ctx).Where("project_id = ?", projectID).Order("created_at DESC").Find(&models).Error; err != nil {
 		return nil, fmt.Errorf("failed to find JIRA connections: %w", err)
 	}
-	
+
 	connections := make([]*integrations.JiraConnection, len(models))
 	for i, model := range models {
 		connections[i] = r.toDomain(&model)
 	}
-	
+
 	return connections, nil
 }
 
 // FindActiveByProjectID retrieves all active connections for a project
 func (r *GormJiraConnectionRepository) FindActiveByProjectID(ctx context.Context, projectID string) ([]*integrations.JiraConnection, error) {
 	var models []database.JiraConnection
-	
+
 	if err := r.db.WithContext(ctx).Where("project_id = ? AND is_active = ?", projectID, true).Order("created_at DESC").Find(&models).Error; err != nil {
 		return nil, fmt.Errorf("failed to find active JIRA connections: %w", err)
 	}
-	
+
 	connections := make([]*integrations.JiraConnection, len(models))
 	for i, model := range models {
 		connections[i] = r.toDomain(&model)
 	}
-	
+
 	return connections, nil
 }
 
@@ -111,7 +111,7 @@ func (r *GormJiraConnectionRepository) toModel(conn *integrations.JiraConnection
 		IsActive:            snapshot.IsActive,
 		LastTestedAt:        snapshot.LastTestedAt,
 	}
-	
+
 	// CRITICAL: Set the ID to ensure updates work correctly
 	// Convert string ID to uint (assuming numeric IDs)
 	if id := snapshot.ID; id != "" {
@@ -120,11 +120,11 @@ func (r *GormJiraConnectionRepository) toModel(conn *integrations.JiraConnection
 			model.ID = numericID
 		}
 	}
-	
+
 	// Set timestamps if they exist
 	model.CreatedAt = snapshot.CreatedAt
 	model.UpdatedAt = snapshot.UpdatedAt
-	
+
 	return model
 }
 

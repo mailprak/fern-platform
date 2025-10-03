@@ -73,7 +73,7 @@ type JiraConnectionResponse struct {
 // CreateConnection creates a new JIRA connection
 func (h *JiraConnectionHandler) CreateConnection(c *gin.Context) {
 	projectID := c.Param("projectId")
-	
+
 	// Check if user can manage the project
 	userID := h.getUserID(c)
 	if userID == "" {
@@ -129,7 +129,7 @@ func (h *JiraConnectionHandler) CreateConnection(c *gin.Context) {
 // GetConnections retrieves all JIRA connections for a project
 func (h *JiraConnectionHandler) GetConnections(c *gin.Context) {
 	projectID := c.Param("projectId")
-	
+
 	// Check if user can view the project
 	userID := h.getUserID(c)
 	if userID == "" {
@@ -154,7 +154,7 @@ func (h *JiraConnectionHandler) GetConnections(c *gin.Context) {
 // GetConnection retrieves a specific JIRA connection
 func (h *JiraConnectionHandler) GetConnection(c *gin.Context) {
 	connectionID := c.Param("connectionId")
-	
+
 	// Check if user can manage the connection
 	userID := h.getUserID(c)
 	if userID == "" {
@@ -195,7 +195,7 @@ func (h *JiraConnectionHandler) GetConnection(c *gin.Context) {
 // UpdateConnection updates a JIRA connection
 func (h *JiraConnectionHandler) UpdateConnection(c *gin.Context) {
 	connectionID := c.Param("connectionId")
-	
+
 	// Check if user can manage the connection
 	userID := h.getUserID(c)
 	if userID == "" {
@@ -254,7 +254,7 @@ func (h *JiraConnectionHandler) UpdateConnection(c *gin.Context) {
 // UpdateCredentials updates JIRA connection credentials
 func (h *JiraConnectionHandler) UpdateCredentials(c *gin.Context) {
 	connectionID := c.Param("connectionId")
-	
+
 	// Check if user can manage the connection
 	userID := h.getUserID(c)
 	if userID == "" {
@@ -313,7 +313,7 @@ func (h *JiraConnectionHandler) UpdateCredentials(c *gin.Context) {
 // TestConnection tests a JIRA connection
 func (h *JiraConnectionHandler) TestConnection(c *gin.Context) {
 	connectionID := c.Param("connectionId")
-	
+
 	// Check if user can manage the connection
 	userID := h.getUserID(c)
 	if userID == "" {
@@ -359,7 +359,7 @@ func (h *JiraConnectionHandler) TestConnection(c *gin.Context) {
 // DeleteConnection deletes a JIRA connection
 func (h *JiraConnectionHandler) DeleteConnection(c *gin.Context) {
 	connectionID := c.Param("connectionId")
-	
+
 	// Check if user can manage the connection
 	userID := h.getUserID(c)
 	if userID == "" {
@@ -405,13 +405,13 @@ func (h *JiraConnectionHandler) DeleteConnection(c *gin.Context) {
 // convertToResponse converts a domain entity to response format
 func (h *JiraConnectionHandler) convertToResponse(conn *integrations.JiraConnection) *JiraConnectionResponse {
 	snapshot := conn.Snapshot()
-	
+
 	var lastTested *string
 	if snapshot.LastTestedAt != nil {
 		formatted := snapshot.LastTestedAt.Format(time.RFC3339)
 		lastTested = &formatted
 	}
-	
+
 	return &JiraConnectionResponse{
 		ID:                 snapshot.ID,
 		ProjectID:          snapshot.ProjectID,

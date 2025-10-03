@@ -165,15 +165,15 @@ type UserScope struct {
 // JiraConnection represents a JIRA integration connection in the database
 type JiraConnection struct {
 	BaseModel
-	ProjectID           string    `gorm:"type:varchar(36);not null;index" json:"project_id"`
-	Name                string    `gorm:"type:varchar(255);not null" json:"name"`
-	JiraURL             string    `gorm:"type:varchar(500);not null" json:"jira_url"`
-	AuthenticationType  string    `gorm:"type:varchar(50);not null" json:"authentication_type"`
-	ProjectKey          string    `gorm:"type:varchar(50);not null" json:"project_key"`
-	Username            string    `gorm:"type:varchar(255);not null" json:"username"`
-	EncryptedCredential string    `gorm:"type:text;not null" json:"-"`
-	Status              string    `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
-	IsActive            bool      `gorm:"not null;default:false" json:"is_active"`
+	ProjectID           string     `gorm:"type:varchar(36);not null;index" json:"project_id"`
+	Name                string     `gorm:"type:varchar(255);not null" json:"name"`
+	JiraURL             string     `gorm:"type:varchar(500);not null" json:"jira_url"`
+	AuthenticationType  string     `gorm:"type:varchar(50);not null" json:"authentication_type"`
+	ProjectKey          string     `gorm:"type:varchar(50);not null" json:"project_key"`
+	Username            string     `gorm:"type:varchar(255);not null" json:"username"`
+	EncryptedCredential string     `gorm:"type:text;not null" json:"-"`
+	Status              string     `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
+	IsActive            bool       `gorm:"not null;default:false" json:"is_active"`
 	LastTestedAt        *time.Time `json:"last_tested_at,omitempty"`
 }
 

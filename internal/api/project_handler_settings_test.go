@@ -14,7 +14,7 @@ import (
 // TestProjectHandlerSettingsAreProcessed verifies that settings in project requests are properly handled
 func TestProjectHandlerSettingsAreProcessed(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	
+
 	// This test documents that the settings field is now properly processed
 	// in both createProject and updateProject endpoints
 	t.Run("createProject request structure includes settings", func(t *testing.T) {
@@ -31,25 +31,25 @@ func TestProjectHandlerSettingsAreProcessed(t *testing.T) {
 				"notifications": true,
 			},
 		}
-		
+
 		jsonBytes, err := json.Marshal(requestBody)
 		assert.NoError(t, err)
-		
+
 		// Create a test request
 		req, err := http.NewRequest("POST", "/api/v1/projects", bytes.NewBuffer(jsonBytes))
 		require.NoError(t, err)
 		req.Header.Set("Content-Type", "application/json")
-		
+
 		// The handler would now process settings via:
 		// 1. Parse input.Settings from request body
 		// 2. Include settings in UpdateProjectRequest
 		// 3. Call project.SetSetting() for each key-value pair
 		// 4. Return settings in the response as a map (not string)
-		
+
 		assert.Contains(t, string(jsonBytes), "settings")
 		assert.Contains(t, string(jsonBytes), "buildTool")
 	})
-	
+
 	t.Run("updateProject request structure includes settings", func(t *testing.T) {
 		requestBody := map[string]interface{}{
 			"name": "Updated Name",
@@ -58,23 +58,23 @@ func TestProjectHandlerSettingsAreProcessed(t *testing.T) {
 				"javaVersion": "17",
 			},
 		}
-		
+
 		jsonBytes, err := json.Marshal(requestBody)
 		assert.NoError(t, err)
-		
+
 		req, err := http.NewRequest("PUT", "/api/v1/projects/test-project", bytes.NewBuffer(jsonBytes))
 		require.NoError(t, err)
 		req.Header.Set("Content-Type", "application/json")
-		
+
 		// The handler now properly processes settings in updates
 		assert.Contains(t, string(jsonBytes), "settings")
 		assert.Contains(t, string(jsonBytes), "gradle")
 	})
-	
+
 	t.Run("project response includes settings as map", func(t *testing.T) {
 		// The convertProjectToAPI method now returns settings as a map
 		// instead of a JSON string, making it easier for clients to use
-		
+
 		// Example response structure:
 		expectedResponse := map[string]interface{}{
 			"id":            1,
@@ -93,7 +93,7 @@ func TestProjectHandlerSettingsAreProcessed(t *testing.T) {
 			"createdAt": "2024-01-01T00:00:00Z",
 			"updatedAt": "2024-01-01T00:00:00Z",
 		}
-		
+
 		// Settings are now returned as a proper map
 		settings, ok := expectedResponse["settings"].(map[string]interface{})
 		assert.True(t, ok, "Settings should be a map, not a string")

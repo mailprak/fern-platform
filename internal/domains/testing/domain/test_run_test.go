@@ -20,7 +20,7 @@ var _ = Describe("TestRun", Label("unit", "domain", "testing"), func() {
 		It("should create a test run with all fields", func() {
 			now := time.Now()
 			endTime := now.Add(10 * time.Minute)
-			
+
 			testRun := &domain.TestRun{
 				ID:           1,
 				RunID:        "test-run-123",
@@ -63,7 +63,7 @@ var _ = Describe("TestRun", Label("unit", "domain", "testing"), func() {
 	Describe("TestRun Status", func() {
 		It("should have valid status values", func() {
 			validStatuses := []string{"pending", "running", "completed", "failed", "cancelled"}
-			
+
 			for _, status := range validStatuses {
 				testRun := &domain.TestRun{
 					RunID:     "test-" + status,
@@ -81,7 +81,7 @@ var _ = Describe("TestRun", Label("unit", "domain", "testing"), func() {
 				TotalTests:  100,
 				PassedTests: 85,
 			}
-			
+
 			percentage := float64(testRun.PassedTests) / float64(testRun.TotalTests) * 100
 			Expect(percentage).To(BeNumerically("~", 85.0, 0.01))
 		})
@@ -91,7 +91,7 @@ var _ = Describe("TestRun", Label("unit", "domain", "testing"), func() {
 				TotalTests:  0,
 				PassedTests: 0,
 			}
-			
+
 			// Should not panic with division by zero
 			if testRun.TotalTests > 0 {
 				_ = float64(testRun.PassedTests) / float64(testRun.TotalTests) * 100
@@ -104,12 +104,12 @@ var _ = Describe("TestRun", Label("unit", "domain", "testing"), func() {
 		It("should calculate duration from start and end time", func() {
 			start := time.Now()
 			end := start.Add(5 * time.Minute)
-			
+
 			testRun := &domain.TestRun{
 				StartTime: start,
 				EndTime:   &end,
 			}
-			
+
 			duration := end.Sub(start)
 			Expect(duration).To(Equal(5 * time.Minute))
 			Expect(testRun.StartTime).To(Equal(start))
@@ -179,12 +179,12 @@ var _ = Describe("SpecRun", Label("unit", "domain", "testing"), func() {
 
 		It("should handle failed spec with error details", func() {
 			specRun := &domain.SpecRun{
-				Name:           "should handle invalid input",
-				Status:         "failed",
-				Duration:       50 * time.Millisecond,
-				ErrorMessage:   "Expected 0 to equal 1",
-				StackTrace:     "at Calculator.add (calculator.js:15:5)",
-				RetryCount:     2,
+				Name:         "should handle invalid input",
+				Status:       "failed",
+				Duration:     50 * time.Millisecond,
+				ErrorMessage: "Expected 0 to equal 1",
+				StackTrace:   "at Calculator.add (calculator.js:15:5)",
+				RetryCount:   2,
 			}
 
 			Expect(specRun.Status).To(Equal("failed"))
@@ -237,7 +237,7 @@ var _ = Describe("TestRunSummary", Label("unit", "domain", "testing"), func() {
 			Expect(summary.FailedRuns).To(Equal(15))
 			Expect(summary.SuccessRate).To(BeNumerically("~", 85.0, 0.01))
 			Expect(summary.AverageRunTime).To(Equal(5 * time.Minute))
-			
+
 			// Verify totals add up
 			totalCompleted := summary.PassedRuns + summary.FailedRuns
 			Expect(totalCompleted).To(Equal(summary.TotalRuns))

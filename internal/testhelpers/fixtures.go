@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/guidewire-oss/fern-platform/internal/domains/projects/domain"
 	authDomain "github.com/guidewire-oss/fern-platform/internal/domains/auth/domain"
+	"github.com/guidewire-oss/fern-platform/internal/domains/projects/domain"
 	testingDomain "github.com/guidewire-oss/fern-platform/internal/domains/testing/domain"
 )
 
@@ -239,7 +239,6 @@ func WithSuiteName(name string) SuiteRunOption {
 	}
 }
 
-
 // WithSuiteStatus sets the suite status
 func WithSuiteStatus(status string) SuiteRunOption {
 	return func(c *suiteRunConfig) {
@@ -254,5 +253,3 @@ func WithFailures(failed int) SuiteRunOption {
 		c.status = "failed"
 	}
 }
-
-
