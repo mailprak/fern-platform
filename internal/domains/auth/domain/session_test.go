@@ -65,9 +65,9 @@ var _ = Describe("Session", Label("unit", "domain", "auth"), func() {
 
 		It("should return false for expired session", func() {
 			session := &domain.Session{
-				SessionID:    "expired-session",
-				UserID:       "user-123",
-				ExpiresAt:    time.Now().Add(-1 * time.Hour), // Expired 1 hour ago
+				SessionID:      "expired-session",
+				UserID:         "user-123",
+				ExpiresAt:      time.Now().Add(-1 * time.Hour), // Expired 1 hour ago
 				LastActivity: time.Now().Add(-2 * time.Hour),
 			}
 			Expect(session.IsValid()).To(BeFalse())
@@ -75,9 +75,9 @@ var _ = Describe("Session", Label("unit", "domain", "auth"), func() {
 
 		It("should handle edge case of exactly expired session", func() {
 			session := &domain.Session{
-				SessionID:    "edge-session",
-				UserID:       "user-123",
-				ExpiresAt:    time.Now(), // Expires right now
+				SessionID:      "edge-session",
+				UserID:         "user-123",
+				ExpiresAt:      time.Now(), // Expires right now
 				LastActivity: time.Now().Add(-1 * time.Hour),
 			}
 			// Might be flaky due to timing, but should generally be false
@@ -128,7 +128,7 @@ var _ = Describe("Session", Label("unit", "domain", "auth"), func() {
 
 			// Wait a bit to ensure time difference
 			time.Sleep(10 * time.Millisecond)
-
+			
 			session.UpdateActivity()
 
 			Expect(session.LastActivity).To(BeTemporally(">", originalActivity))
@@ -196,7 +196,7 @@ var _ = Describe("Session", Label("unit", "domain", "auth"), func() {
 				ExpiresAt: time.Now().Add(-1 * time.Hour), // Already expired
 				IsActive:  true,
 			}
-
+			
 			// Session should be expired
 			Expect(session.IsExpired()).To(BeTrue())
 		})
@@ -214,23 +214,23 @@ var _ = Describe("Session", Label("unit", "domain", "auth"), func() {
 				LastActivity: time.Now(),
 				CreatedAt:    time.Now(),
 			}
-
+			
 			// Verify initial state
 			Expect(session.IsValid()).To(BeTrue())
 			Expect(session.IsExpired()).To(BeFalse())
-
+			
 			// Simulate activity
 			time.Sleep(10 * time.Millisecond)
 			session.UpdateActivity()
 			activityTime1 := session.LastActivity
-
+			
 			// More activity
 			time.Sleep(10 * time.Millisecond)
 			session.UpdateActivity()
 			activityTime2 := session.LastActivity
-
+			
 			Expect(activityTime2).To(BeTemporally(">", activityTime1))
-
+			
 			// Force expiration
 			session.ExpiresAt = time.Now().Add(-1 * time.Second)
 			Expect(session.IsValid()).To(BeFalse())
@@ -243,7 +243,7 @@ var _ = Describe("Session", Label("unit", "domain", "auth"), func() {
 			// Note: This test demonstrates that UpdateActivity is NOT thread-safe
 			// In a real application, session updates should be protected by locks
 			// or handled through a single goroutine
-
+			
 			// Create multiple sessions to avoid race condition in test
 			sessions := make([]*domain.Session, 10)
 			for i := 0; i < 10; i++ {
@@ -255,7 +255,7 @@ var _ = Describe("Session", Label("unit", "domain", "auth"), func() {
 					LastActivity: time.Now(),
 				}
 			}
-
+			
 			// Simulate concurrent updates on different sessions
 			done := make(chan bool, 10)
 			for i := 0; i < 10; i++ {
@@ -264,12 +264,12 @@ var _ = Describe("Session", Label("unit", "domain", "auth"), func() {
 					done <- true
 				}(i)
 			}
-
+			
 			// Wait for all goroutines
 			for i := 0; i < 10; i++ {
 				<-done
 			}
-
+			
 			// All sessions should still be valid
 			for _, s := range sessions {
 				Expect(s.IsValid()).To(BeTrue())

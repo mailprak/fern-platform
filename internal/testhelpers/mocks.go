@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/stretchr/testify/mock"
-
-	authDomain "github.com/guidewire-oss/fern-platform/internal/domains/auth/domain"
+	
 	"github.com/guidewire-oss/fern-platform/internal/domains/projects/domain"
-	tagsDomain "github.com/guidewire-oss/fern-platform/internal/domains/tags/domain"
+	authDomain "github.com/guidewire-oss/fern-platform/internal/domains/auth/domain"
 	testingDomain "github.com/guidewire-oss/fern-platform/internal/domains/testing/domain"
+	tagsDomain "github.com/guidewire-oss/fern-platform/internal/domains/tags/domain"
 )
 
 // MockProjectRepository is a mock implementation of domain.ProjectRepository

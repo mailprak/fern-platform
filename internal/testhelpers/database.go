@@ -22,7 +22,7 @@ type TestDatabase struct {
 func NewTestDatabase(t *testing.T) *TestDatabase {
 	// Create a temporary SQLite database for testing
 	tempFile := fmt.Sprintf("/tmp/fern_test_%s.db", t.Name())
-
+	
 	// Open SQLite database
 	db, err := gorm.Open(sqlite.Open(tempFile), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
@@ -30,7 +30,7 @@ func NewTestDatabase(t *testing.T) *TestDatabase {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-
+	
 	// Auto-migrate all models
 	err = db.AutoMigrate(
 		&database.ProjectPermission{},
@@ -44,7 +44,7 @@ func NewTestDatabase(t *testing.T) *TestDatabase {
 	if err != nil {
 		t.Fatalf("Failed to migrate test database: %v", err)
 	}
-
+	
 	return &TestDatabase{
 		DB:       db,
 		tempFile: tempFile,
@@ -70,23 +70,23 @@ func (td *TestDatabase) Clear() error {
 		"spec_runs",
 		"suite_runs",
 		"test_runs",
-
+		
 		// Then clear project-related tables
 		"project_permissions",
 		"project_access",
 		"project_details", // Fixed: was "projects" (incorrect table name)
-
+		
 		// Then clear user-related tables
 		"user_preferences",
 		"user_sessions",
 		"user_scopes",
 		"user_groups",
 		"users",
-
+		
 		// Finally, clear standalone tables
 		"tags",
 	}
-
+	
 	for _, table := range tables {
 		if err := td.DB.Exec("DELETE FROM " + table).Error; err != nil {
 			// Log the error but continue clearing other tables
@@ -94,9 +94,10 @@ func (td *TestDatabase) Clear() error {
 			fmt.Printf("Warning: failed to clear table %s: %v\n", table, err)
 		}
 	}
-
+	
 	return nil
 }
+
 
 // SeedUsers adds test users to the database
 func (td *TestDatabase) SeedUsers(users ...*database.User) error {
@@ -151,6 +152,6 @@ func (td *TestDatabase) AssertCount(t *testing.T, model interface{}, expected in
 func (td *TestDatabase) TransactionTest(t *testing.T, fn func(*gorm.DB)) {
 	tx := td.DB.Begin()
 	defer tx.Rollback()
-
+	
 	fn(tx)
 }

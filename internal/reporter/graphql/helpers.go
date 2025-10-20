@@ -214,6 +214,7 @@ func hasUserRole(user *authDomain.User, roleGroups *RoleGroupNames) bool {
 	return false
 }
 
+
 // convertJiraConnectionToModel converts a domain JIRA connection to GraphQL model
 func (r *Resolver) convertJiraConnectionToModel(conn *integrations.JiraConnection) *model.JiraConnection {
 	if conn == nil {

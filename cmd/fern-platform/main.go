@@ -95,7 +95,7 @@ func main() {
 	// Check environment variable to determine which handler version to use
 	// ParseBool accepts 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False
 	useSplitHandlers, _ := strconv.ParseBool(os.Getenv("FERN_USE_SPLIT_HANDLERS"))
-
+	
 	if useSplitHandlers {
 		// Use the new split handler architecture
 		domainHandler := api.NewDomainHandlerV2(

@@ -18,19 +18,19 @@ import (
 
 // JiraConnection represents a JIRA integration connection
 type JiraConnection struct {
-	id                  string
-	projectID           string
-	name                string
-	jiraURL             string
-	authenticationType  AuthenticationType
-	projectKey          string
-	username            string
+	id                 string
+	projectID          string
+	name               string
+	jiraURL            string
+	authenticationType AuthenticationType
+	projectKey         string
+	username           string
 	encryptedCredential string
-	status              ConnectionStatus
-	isActive            bool
-	lastTestedAt        *time.Time
-	createdAt           time.Time
-	updatedAt           time.Time
+	status             ConnectionStatus
+	isActive           bool
+	lastTestedAt       *time.Time
+	createdAt          time.Time
+	updatedAt          time.Time
 }
 
 // JiraClient interface for testing connections
@@ -62,18 +62,18 @@ func NewJiraConnection(projectID, name, jiraURL string, authType AuthenticationT
 
 	now := time.Now()
 	return &JiraConnection{
-		id:                  uuid.New().String(),
-		projectID:           projectID,
-		name:                name,
-		jiraURL:             strings.TrimRight(jiraURL, "/"),
-		authenticationType:  authType,
-		projectKey:          projectKey,
-		username:            username,
+		id:                 uuid.New().String(),
+		projectID:          projectID,
+		name:               name,
+		jiraURL:            strings.TrimRight(jiraURL, "/"),
+		authenticationType: authType,
+		projectKey:         projectKey,
+		username:           username,
 		encryptedCredential: credential, // Will be encrypted when saved
-		status:              ConnectionStatusPending,
-		isActive:            false,
-		createdAt:           now,
-		updatedAt:           now,
+		status:             ConnectionStatusPending,
+		isActive:           false,
+		createdAt:          now,
+		updatedAt:          now,
 	}, nil
 }
 
@@ -181,7 +181,7 @@ func (j *JiraConnection) UpdateCredentials(authType AuthenticationType, username
 // TestConnection tests the JIRA connection
 func (j *JiraConnection) TestConnection(ctx context.Context, client JiraClient) error {
 	log.Printf("[JiraConnection] Testing connection for ID: %s, URL: %s", j.id, j.jiraURL)
-
+	
 	err := client.TestConnection(ctx, j.jiraURL, j.username, j.encryptedCredential, j.authenticationType)
 	now := time.Now()
 	j.lastTestedAt = &now

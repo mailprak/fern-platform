@@ -854,11 +854,11 @@ var _ = Describe("TestRunHandler", func() {
 	Describe("RegisterRoutes", func() {
 		It("should register all routes correctly", func() {
 			routes := router.Routes()
-
+			
 			// Check user routes exist
 			userRoutes := []string{
 				"GET /api/v1/test-runs",
-				"GET /api/v1/test-runs/count",
+				"GET /api/v1/test-runs/count", 
 				"GET /api/v1/test-runs/:id",
 				"GET /api/v1/test-runs/by-run-id/:runId",
 				"GET /api/v1/test-runs/stats",
@@ -875,7 +875,7 @@ var _ = Describe("TestRunHandler", func() {
 			}
 
 			allExpectedRoutes := append(userRoutes, adminRoutes...)
-
+			
 			for _, expectedRoute := range allExpectedRoutes {
 				found := false
 				for _, route := range routes {

@@ -28,11 +28,11 @@ func RunTableTests(description string, entries []TestTableEntry, testFunc func(e
 				if entry.Setup != nil {
 					entry.Setup()
 				}
-
+				
 				if entry.Cleanup != nil {
 					defer entry.Cleanup()
 				}
-
+				
 				testFunc(entry)
 			})
 		}
@@ -53,7 +53,7 @@ func RunValidationTests(validator func(interface{}) error, testCases []Validatio
 		tc := tc // capture range variable
 		It(tc.Name, func() {
 			err := validator(tc.Input)
-
+			
 			if tc.ShouldPass {
 				Expect(err).NotTo(HaveOccurred())
 			} else {
@@ -94,10 +94,10 @@ func RunErrorTests(testCases []ErrorTestCase) {
 		tc := tc // capture range variable
 		It(tc.Name, func() {
 			err := tc.Setup()
-
+			
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(tc.ExpectedError))
-
+			
 			if tc.ExpectedType != nil {
 				Expect(err).To(MatchError(tc.ExpectedType))
 			}
@@ -122,7 +122,7 @@ func RunBenchmarks(b *testing.B, cases []BenchmarkCase) {
 			if bc.Cleanup != nil {
 				defer bc.Cleanup()
 			}
-
+			
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				bc.Operation(data)
@@ -159,10 +159,10 @@ func generatePermutations(inputs [][]interface{}) [][]interface{} {
 	if len(inputs) == 0 {
 		return [][]interface{}{{}}
 	}
-
+	
 	var result [][]interface{}
 	subPerms := generatePermutations(inputs[1:])
-
+	
 	for _, value := range inputs[0] {
 		for _, subPerm := range subPerms {
 			perm := make([]interface{}, 0, len(subPerm)+1)
@@ -171,16 +171,16 @@ func generatePermutations(inputs [][]interface{}) [][]interface{} {
 			result = append(result, perm)
 		}
 	}
-
+	
 	return result
 }
 
 // PropertyTestCase represents a property-based test case
 type PropertyTestCase struct {
-	Name      string
-	Generator func() interface{}
-	Property  func(input interface{}) bool
-	NumTests  int
+	Name       string
+	Generator  func() interface{}
+	Property   func(input interface{}) bool
+	NumTests   int
 }
 
 // RunPropertyTests runs property-based tests
@@ -192,7 +192,7 @@ func RunPropertyTests(cases []PropertyTestCase) {
 			if numTests == 0 {
 				numTests = 100
 			}
-
+			
 			It(fmt.Sprintf("should hold for %d random inputs", numTests), func() {
 				for i := 0; i < numTests; i++ {
 					input := tc.Generator()

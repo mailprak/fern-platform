@@ -289,7 +289,7 @@ func (h *ProjectHandler) getProjectUsers(c *gin.Context) {
 // convertProjectToAPI converts a domain project to API response format
 func (h *ProjectHandler) convertProjectToAPI(p *projectsDomain.Project) gin.H {
 	snapshot := p.ToSnapshot()
-
+	
 	return gin.H{
 		"id":            snapshot.ID,
 		"projectId":     string(snapshot.ProjectID),

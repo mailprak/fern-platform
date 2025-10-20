@@ -28,9 +28,9 @@ func NewDefaultJiraClient() *DefaultJiraClient {
 func (c *DefaultJiraClient) TestConnection(ctx context.Context, url, username, credential string, authType AuthenticationType) error {
 	// Test by getting current user info
 	endpoint := fmt.Sprintf("%s/rest/api/2/myself", url)
-
+	
 	log.Printf("[DefaultJiraClient] Testing connection to: %s with auth type: %v, username: %s", endpoint, authType, username)
-
+	
 	req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
 	if err != nil {
 		log.Printf("[DefaultJiraClient] Failed to create request: %v", err)
@@ -49,7 +49,7 @@ func (c *DefaultJiraClient) TestConnection(ctx context.Context, url, username, c
 	defer resp.Body.Close()
 
 	log.Printf("[DefaultJiraClient] Response status from %s: %d", url, resp.StatusCode)
-
+	
 	if resp.StatusCode != http.StatusOK {
 		// Read error response body for more details
 		var errorBody map[string]interface{}
@@ -67,7 +67,7 @@ func (c *DefaultJiraClient) TestConnection(ctx context.Context, url, username, c
 // GetProject retrieves a JIRA project by key
 func (c *DefaultJiraClient) GetProject(ctx context.Context, url, projectKey, username, credential string, authType AuthenticationType) (*JiraProject, error) {
 	endpoint := fmt.Sprintf("%s/rest/api/2/project/%s", url, projectKey)
-
+	
 	req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)

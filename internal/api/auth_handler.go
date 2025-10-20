@@ -177,7 +177,7 @@ func (h *AuthHandler) generateOAuthURL(c *gin.Context) string {
 	if c.Request.TLS != nil || c.Request.Header.Get("X-Forwarded-Proto") == "https" {
 		scheme = "https"
 	}
-
+	
 	host := c.Request.Host
 	if forwardedHost := c.Request.Header.Get("X-Forwarded-Host"); forwardedHost != "" {
 		host = forwardedHost

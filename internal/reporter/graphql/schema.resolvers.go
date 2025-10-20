@@ -429,7 +429,7 @@ func (r *mutationResolver) TestJiraConnection(ctx context.Context, id string) (b
 	r.logger.Infof("Testing JIRA connection %s for project %s", id, project.ProjectID())
 	if err := r.jiraConnectionService.TestConnection(ctx, id); err != nil {
 		r.logger.Errorf("TestJiraConnection failed: %v", err)
-		return false, nil // Return false but no error so GraphQL returns the boolean
+		return false, nil  // Return false but no error so GraphQL returns the boolean
 	}
 
 	r.logger.Infof("TestJiraConnection successful for connection %s", id)
