@@ -114,6 +114,12 @@ const QUERIES = {
                 passedTests
                 failedTests
                 skippedTests
+                tags {
+                    id
+                    name
+                    category
+                    value
+                }
                 suiteRuns {
                     id
                     suiteName
@@ -123,6 +129,12 @@ const QUERIES = {
                     failedSpecs
                     skippedSpecs
                     duration
+                    tags {
+                        id
+                        name
+                        category
+                        value
+                    }
                     specRuns {
                         id
                         specName
@@ -133,6 +145,12 @@ const QUERIES = {
                         errorMessage
                         stackTrace
                         isFlaky
+                        tags {
+                            id
+                            name
+                            category
+                            value
+                        }
                     }
                 }
             }
@@ -203,6 +221,12 @@ const QUERIES = {
                 duration
                 environment
                 metadata
+                tags {
+                    id
+                    name
+                    category
+                    value
+                }
                 suiteRuns {
                     id
                     suiteName
@@ -212,6 +236,12 @@ const QUERIES = {
                     failedSpecs
                     skippedSpecs
                     duration
+                    tags {
+                        id
+                        name
+                        category
+                        value
+                    }
                     specRuns {
                         id
                         specName
@@ -222,6 +252,12 @@ const QUERIES = {
                         errorMessage
                         stackTrace
                         isFlaky
+                        tags {
+                            id
+                            name
+                            category
+                            value
+                        }
                     }
                 }
             }
