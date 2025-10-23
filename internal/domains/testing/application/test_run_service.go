@@ -291,14 +291,17 @@ func (s *TestRunService) CreateSpecRun(ctx context.Context, specRun *domain.Spec
 	if specRun.Status == "" {
 		specRun.Status = "pending"
 	}
-	// Always set StartTime if zero
-	if specRun.StartTime.IsZero() {
+	
+	// Only auto-set StartTime if both StartTime and EndTime are zero
+	if specRun.StartTime.IsZero() && (specRun.EndTime == nil || specRun.EndTime.IsZero()) {
 		specRun.StartTime = time.Now()
 	}
 
-	// Calculate duration if not set
-	if specRun.EndTime != nil && !specRun.StartTime.IsZero() {
-		specRun.Duration = specRun.EndTime.Sub(specRun.StartTime)
+	// Calculate duration only if both times are set and EndTime is after StartTime
+	if specRun.EndTime != nil && !specRun.StartTime.IsZero() && !specRun.EndTime.IsZero() {
+		if specRun.EndTime.After(specRun.StartTime) {
+			specRun.Duration = specRun.EndTime.Sub(specRun.StartTime)
+		}
 	}
 
 	return s.specRunRepo.Create(ctx, specRun)
